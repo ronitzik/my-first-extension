@@ -1,5 +1,6 @@
+// extensions.ts file
 import * as vscode from 'vscode';
-import { analyzeComplexity } from './openaiHelper';
+import { analyzeComplexity, generateOptimizationTips  } from './openaiHelper';
 
 export function activate(context: vscode.ExtensionContext) {
     // Register the command to analyze code complexity
@@ -43,6 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
                     setTimeout(() => {
                         editor.setDecorations(decorationType, []);
                     }, 10000);
+					// Generate optimization tips for the most complex function
+                    const optimizationTips = await generateOptimizationTips(mostComplexFunction, code);
+                    vscode.window.showInformationMessage(`Tips to optimize ${mostComplexFunction}:\n${optimizationTips}`);
                 } else {
                     vscode.window.showWarningMessage(
                         'Could not identify the most complex function.'

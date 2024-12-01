@@ -1,3 +1,4 @@
+// openaiHelper.ts file
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 
@@ -6,7 +7,6 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 if (!OPENAI_API_KEY) {
     throw new Error('API Key is missing or not loaded correctly from .env file');
 }
-console.log('Loaded API Key:', OPENAI_API_KEY);
 
 export async function analyzeComplexity(code: string): Promise<string> {
     const prompt = `
@@ -18,13 +18,28 @@ export async function analyzeComplexity(code: string): Promise<string> {
     Most Complex Function: [function name]"
     \n\n${code}
     `;
+    return await callOpenAIAPI(prompt);
+}
 
+export async function generateOptimizationTips(functionName: string, code: string): Promise<string> {
+    const prompt = `
+    Analyze the function named "${functionName}" in the provided code. Suggest optimizations to make it more efficient.
+    Focus on reducing time complexity, space complexity, and improving readability. Answer in 2 LINES.
+
+    Code:
+    ${code}
+    `;
+
+    return await callOpenAIAPI(prompt);
+}
+
+async function callOpenAIAPI(prompt: string): Promise<string> {
     try {
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
-                model: "gpt-4o-mini",
-                messages: [{ role: "user", content: prompt }],
+                model: 'gpt-4o-mini',
+                messages: [{ role: 'user', content: prompt }],
             },
             {
                 headers: {
@@ -33,9 +48,10 @@ export async function analyzeComplexity(code: string): Promise<string> {
                 },
             }
         );
+
         return response.data.choices[0].message.content.trim();
     } catch (error) {
-        console.error('Error fetching complexity analysis:', error);
-        throw new Error('Failed to analyze complexity. Please check the OpenAI API key or connection.');
+        console.error('Error calling OpenAI API:', error);
+        throw new Error('Failed to process the request. Please check the API key or connection.');
     }
 }
