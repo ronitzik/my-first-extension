@@ -13,7 +13,7 @@ The extension identifies the most complex function in a file, provides optimizat
   - Provides actionable tips to improve the efficiency of the most complex function.
 - **Visual Highlights:**
   - Highlights the most complex function in the editor for easy identification.
-  - 
+  
 ## Technologies Used
 - **TypeScript**: The code is written in TypeScript.
 - **Visual Studio Code API**: To interact with the VSCode environment, including commands, decorations, and settings.
