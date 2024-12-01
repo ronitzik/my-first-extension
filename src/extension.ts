@@ -12,17 +12,42 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.setStatusBarMessage('Calculating code complexity...', 5000);
 
             try {
-                const complexity = await analyzeComplexity(code);
+                const complexityResult = await analyzeComplexity(code);
+
+                // Extract the most complex function name from the result
+                const match = complexityResult.match(/Most Complex Function: (.+)/);
+                const mostComplexFunction = match ? match[1].trim() : null;
 
                 // Display the result in an information message
-                vscode.window.showInformationMessage(`${complexity}`);
+                vscode.window.showInformationMessage(`${complexityResult}`);
 
-                // Optionally display in status bar
-                const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-                statusBar.text = `Complexity: ${complexity}`;
-                statusBar.show();
+                if (mostComplexFunction) {
+                    // Highlight the most complex function
+                    const regex = new RegExp(`function\\s+${mostComplexFunction}\\s*\\(`, 'g');
+                    const decorationType = vscode.window.createTextEditorDecorationType({
+                        backgroundColor: 'rgba(255,0,0,0.3)',
+                    });
 
-                setTimeout(() => statusBar.dispose(), 10000);
+                    const ranges: vscode.DecorationOptions[] = [];
+                    for (let match; (match = regex.exec(code)); ) {
+                        const startPos = editor.document.positionAt(match.index);
+                        const endPos = editor.document.positionAt(
+                            match.index + match[0].length
+                        );
+                        ranges.push({ range: new vscode.Range(startPos, endPos) });
+                    }
+
+                    editor.setDecorations(decorationType, ranges);
+
+                    // Remove the decoration after a timeout
+                    setTimeout(() => {
+                        editor.setDecorations(decorationType, []);
+                    }, 10000);
+                } else {
+                    vscode.window.showWarningMessage(
+                        'Could not identify the most complex function.'
+                    );
+                }
             } catch (error) {
                 // Safely handle the error by typecasting to `Error`
                 if (error instanceof Error) {
